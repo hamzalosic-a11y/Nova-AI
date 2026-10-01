@@ -90,7 +90,7 @@ app.get("/api/scores", async (req,res) => {
   }
 });
 
-app.get("*",(req,res)=>{
+app.use((req,res)=>{
   res.sendFile(new URL("./public/index.html",import.meta.url));
 });
 

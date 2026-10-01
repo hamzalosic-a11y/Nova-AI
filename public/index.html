@@ -1,0 +1,22 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NovaAI</title>
+<style>
+body{margin:0;font-family:system-ui;background:#0b1020;color:#eef2ff}main{max-width:1100px;margin:auto;padding:30px}
+.card{background:#151c32;border:1px solid #29324d;border-radius:18px;padding:20px;margin:16px 0}
+input,button{padding:13px;border-radius:10px;border:0;margin:4px}input{width:70%;background:#222b45;color:white}button{cursor:pointer}
+.game{padding:14px 0;border-bottom:1px solid #29324d}.score{font-size:24px;margin:5px 0}
+a{color:#8db7ff}.muted{color:#9da9c7;white-space:pre-wrap}
+</style></head>
+<body><main>
+<h1>✦ NovaAI</h1><p class="muted">AI assistant + calculator + live Sofascore football.</p>
+<div class="card"><h2>AI Assistant</h2><input id="msg" placeholder="Ask NovaAI anything..." onkeydown="if(event.key==='Enter')send()"><button onclick="send()">Send</button><div id="answer" class="muted"></div></div>
+<div class="card"><h2>Live Sports <small>· Sofascore</small></h2><button onclick="scores()">Refresh scores</button><div id="scores">Loading…</div></div>
+<div class="card"><h2>Calculator</h2><input id="calc" placeholder="Example: (12+8)*3"><button onclick="calculate()">Calculate</button><b id="result"></b></div>
+</main>
+<script>
+async function send(){const m=msg.value.trim();if(!m)return;answer.textContent="Thinking…";try{const r=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:m})});const d=await r.json();answer.textContent=r.ok?d.answer:(d.detail||d.error||"Server error");}catch(e){answer.textContent="Server not running. Start with: npm install then npm start";}}
+async function scores(){const el=document.getElementById("scores");el.textContent="Loading Sofascore…";try{const r=await fetch("/api/scores?sport=football");const d=await r.json();if(!r.ok)throw Error(d.error);el.innerHTML=d.events.length?d.events.map(x=>`<div class="game"><b>${x.homeTeam}</b> ${x.homeScore??"—"} : ${x.awayScore??"—"} <b>${x.awayTeam}</b><br><span class="muted">${x.tournament} · ${x.status}</span>${x.link?` · <a href="${x.link}" target="_blank">Sofascore</a>`:""}</div>`).join(""):"No football events found today."}catch(e){el.textContent="Sofascore error: "+e.message;}}
+function calculate(){try{if(!/^[0-9+\-*/().%\s]+$/.test(calc.value))throw Error("Numbers and operators only");result.textContent=" = "+Function("return "+calc.value)();}catch(e){result.textContent=" Error";}}
+scores();setInterval(scores,60000);
+</script></body></html>
